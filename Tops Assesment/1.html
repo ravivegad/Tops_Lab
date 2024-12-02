@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Slider</title>
+    <style>
+        body{
+            background-color: black;
+        }
+        .slider-container {
+            width: 700px;
+            margin: auto;
+            text-align: center;
+            border: 1px solid #ddd;
+            position: relative;
+            overflow: hidden;
+            background-color: #333;
+        }
+        .slider-main-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid #ddd;
+        }
+        .thumbnail-container-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-top: 10px;
+            overflow: hidden;
+            width: 100%;
+        }
+        .thumbnail-container {
+            display: flex;
+            transition: transform 0.3s ease-in-out;
+        }
+        .thumbnail {
+            width: 100px;
+            height: 100px;
+            margin: 5px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            flex-shrink: 0;
+        }
+        .thumbnail.selected {
+            border: 2px solid #333;
+        }
+        .arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.8);
+           
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .arrow-left {
+            left: 10px;
+            background-color: #333;
+            color: white;
+        }
+        .arrow-right {
+            right: 10px;
+            background-color: #333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="slider" class="slider-container">
+        <!-- Arrows for navigation -->
+        <div class="arrow arrow-left" id="arrow-left">&#8249;</div>
+        <div class="arrow arrow-right" id="arrow-right">&#8250;</div>
+    </div>
+
+    <script>
+        // Sample images array
+        const images = [
+    "https://imgs.search.brave.com/25B1xanQfdTP6lE8pf8F_s_opM7IAF8u4U5RhcnqzJs/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9lYXRk/aXMubmwvd3AtY29u/dGVudC91cGxvYWRz/LzIwMjMvMDcvRElT/LUZvb2QtMjguMDYu/MjAyMy0xLW9mLTQ0/LmpwZw",
+    "https://imgs.search.brave.com/25B1xanQfdTP6lE8pf8F_s_opM7IAF8u4U5RhcnqzJs/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9lYXRk/aXMubmwvd3AtY29u/dGVudC91cGxvYWRz/LzIwMjMvMDcvRElT/LUZvb2QtMjguMDYu/MjAyMy0xLW9mLTQ0/LmpwZw",
+    "https://imgs.search.brave.com/25B1xanQfdTP6lE8pf8F_s_opM7IAF8u4U5RhcnqzJs/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9lYXRk/aXMubmwvd3AtY29u/dGVudC91cGxvYWRz/LzIwMjMvMDcvRElT/LUZvb2QtMjguMDYu/MjAyMy0xLW9mLTQ0/LmpwZw",
+    "https://imgs.search.brave.com/lEMTjWi0fUdwgT0RJFQFhz0NFBY16K8fac4Km7bJ-Xw/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9lYXRk/aXMubmwvd3AtY29u/dGVudC91cGxvYWRz/LzIwMjMvMDcvRElT/LUZvb2QtMjguMDYu/MjAyMy0xNS1vZi00/NC5qcGc",
+    "https://imgs.search.brave.com/EoJgg8bHOtGA_8NvU6_4oCUjteNHNdVJD-zpfxG-scQ/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9kaXNh/YnJvYWQub3JnL3dw/LWNvbnRlbnQvdXBs/b2Fkcy9zaXRlcy80/LzIwMTgvMDYvc3Vz/dGFpbmFibGUtZm9v/ZC1jb25zdW1wdGlv/bi1wcm9kdWN0aW9u/LWNvcmUtY291cnNl/LWRpcy1jb3Blbmhh/Z2VuLTMtNzkweDMx/Ni5qcGc",
+    "https://imgs.search.brave.com/25B1xanQfdTP6lE8pf8F_s_opM7IAF8u4U5RhcnqzJs/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9lYXRk/aXMubmwvd3AtY29u/dGVudC91cGxvYWRz/LzIwMjMvMDcvRElT/LUZvb2QtMjguMDYu/MjAyMy0xLW9mLTQ0/LmpwZw",
+    "https://imgs.search.brave.com/lEMTjWi0fUdwgT0RJFQFhz0NFBY16K8fac4Km7bJ-Xw/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9lYXRk/aXMubmwvd3AtY29u/dGVudC91cGxvYWRz/LzIwMjMvMDcvRElT/LUZvb2QtMjguMDYu/MjAyMy0xNS1vZi00/NC5qcGc",
+    "https://imgs.search.brave.com/EoJgg8bHOtGA_8NvU6_4oCUjteNHNdVJD-zpfxG-scQ/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9kaXNh/YnJvYWQub3JnL3dw/LWNvbnRlbnQvdXBs/b2Fkcy9zaXRlcy80/LzIwMTgvMDYvc3Vz/dGFpbmFibGUtZm9v/ZC1jb25zdW1wdGlv/bi1wcm9kdWN0aW9u/LWNvcmUtY291cnNl/LWRpcy1jb3Blbmhh/Z2VuLTMtNzkweDMx/Ni5qcGc",
+    "https://imgs.search.brave.com/25B1xanQfdTP6lE8pf8F_s_opM7IAF8u4U5RhcnqzJs/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9lYXRk/aXMubmwvd3AtY29u/dGVudC91cGxvYWRz/LzIwMjMvMDcvRElT/LUZvb2QtMjguMDYu/MjAyMy0xLW9mLTQ0/LmpwZw",
+    "https://imgs.search.brave.com/lEMTjWi0fUdwgT0RJFQFhz0NFBY16K8fac4Km7bJ-Xw/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9lYXRk/aXMubmwvd3AtY29u/dGVudC91cGxvYWRz/LzIwMjMvMDcvRElT/LUZvb2QtMjguMDYu/MjAyMy0xNS1vZi00/NC5qcGc",
+    "https://imgs.search.brave.com/EoJgg8bHOtGA_8NvU6_4oCUjteNHNdVJD-zpfxG-scQ/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9kaXNh/YnJvYWQub3JnL3dw/LWNvbnRlbnQvdXBs/b2Fkcy9zaXRlcy80/LzIwMTgvMDYvc3Vz/dGFpbmFibGUtZm9v/ZC1jb25zdW1wdGlv/bi1wcm9kdWN0aW9u/LWNvcmUtY291cnNl/LWRpcy1jb3Blbmhh/Z2VuLTMtNzkweDMx/Ni5qcGc",
+        ];
+
+        // Main function to initialize the slider
+        function initializeSlider(images) {
+            const sliderContainer = document.getElementById("slider");
+
+            // Create the main image display area
+            const mainImage = document.createElement("img");
+            mainImage.src = images[0];
+            mainImage.className = "slider-main-image";
+            sliderContainer.appendChild(mainImage);
+
+            // Create the thumbnail container wrapper
+            const thumbnailWrapper = document.createElement("div");
+            thumbnailWrapper.className = "thumbnail-container-wrapper";
+            sliderContainer.appendChild(thumbnailWrapper);
+
+            // Create the thumbnail container
+            const thumbnailContainer = document.createElement("div");
+            thumbnailContainer.className = "thumbnail-container";
+            thumbnailWrapper.appendChild(thumbnailContainer);
+
+            // Function to update the main image when a thumbnail is clicked
+            function updateMainImage(newSrc) {
+                mainImage.src = newSrc;
+            }
+
+            // Loop through the images to create thumbnail elements dynamically
+            images.forEach((imgSrc, index) => {
+                const thumbnail = document.createElement("img");
+                thumbnail.src = imgSrc;
+                thumbnail.className = "thumbnail";
+                if (index === 0) thumbnail.classList.add("selected");
+
+                // Event listener to update main image on click
+                thumbnail.addEventListener("click", () => {
+                    updateMainImage(imgSrc);
+                    setActiveThumbnail(thumbnail);
+                });
+
+                thumbnailContainer.appendChild(thumbnail);
+            });
+
+            // Function to set the active thumbnail
+            function setActiveThumbnail(selectedThumbnail) {
+                const thumbnails = thumbnailContainer.querySelectorAll(".thumbnail");
+                thumbnails.forEach(thumbnail => thumbnail.classList.remove("selected"));
+                selectedThumbnail.classList.add("selected");
+            }
+
+            // Add navigation functionality
+            const arrowLeft = document.getElementById("arrow-left");
+            const arrowRight = document.getElementById("arrow-right");
+            let scrollIndex = 0;
+
+            // Move left on clicking left arrow
+            arrowLeft.addEventListener("click", () => {
+                if (scrollIndex > 0) {
+                    scrollIndex -= 1;
+                    updateThumbnailPosition();
+                }
+            });
+
+            // Move right on clicking right arrow
+            arrowRight.addEventListener("click", () => {
+                if (scrollIndex < images.length - 3) { // Adjust to control the visible thumbnails
+                    scrollIndex += 1;
+                    updateThumbnailPosition();
+                }
+            });
+
+            // Function to update thumbnail container position
+            function updateThumbnailPosition() {
+                const thumbnailWidth = 70; // Width + margin of each thumbnail
+                thumbnailContainer.style.transform = `translateX(-${scrollIndex * thumbnailWidth}px)`;
+            }
+        }
+
+        // Initialize the slider with the images array
+        initializeSlider(images);
+    </script>
+</body>
+</html>
